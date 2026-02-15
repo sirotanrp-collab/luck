@@ -43,7 +43,8 @@
     carpet: { colors: ['#8b4513', '#a0522d'], rows: ['111111111111', '122121212121', '111111111111', '212121212122', '111111111111', '122121212121', '111111111111', '212121212122', '111111111111', '122121212121', '111111111111', '212121212122'] },
     painting: { colors: ['#87ceeb', '#5c4033'], rows: ['222222222222', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '211111111112', '222222222222'] },
     crystalshelf: { colors: ['#9b59b6', '#5c4033'], rows: ['222222222222', '222222222222', '201020102010', '210201020102', '201020102010', '222222222222', '222222222222', '201020102010', '210201020102', '201020102010', '222222222222', '222222222222'] },
-    luxuryclock: { colors: ['#d4a84b', '#2c1810'], rows: ['000022222200', '002222222220', '022211111222', '022111111122', '221111111112', '221111111112', '221111111112', '221111111112', '022111111122', '022211111222', '002222222220', '000022222200'] }
+    luxuryclock: { colors: ['#d4a84b', '#2c1810'], rows: ['000022222200', '002222222220', '022211111222', '022111111122', '221111111112', '221111111112', '221111111112', '221111111112', '022111111122', '022211111222', '002222222220', '000022222200'] },
+    keiba_omamori: { colors: ['#c0392b', '#f1c40f'], rows: ['000011110000', '000111111000', '001111111100', '001122221100', '011122221110', '011111111110', '011122221110', '011122221110', '001111111100', '000111111000', '000022220000', '000002200000'] }
   };
   const FURNITURE_ITEMS = [
     { id: 'plant', name: '小さな観葉植物', price: 1000, bonus: 0.5 },
@@ -52,7 +53,8 @@
     { id: 'carpet', name: '高級じゅうたん', price: 20000, bonus: 4 },
     { id: 'painting', name: '幸運の絵画', price: 50000, bonus: 6 },
     { id: 'crystalshelf', name: 'パワーストーン棚', price: 120000, bonus: 10 },
-    { id: 'luxuryclock', name: '超高級時計', price: 500000, bonus: 20 }
+    { id: 'luxuryclock', name: '超高級時計', price: 500000, bonus: 20 },
+    { id: 'keiba_omamori', name: '競馬のお守り', price: 10000000, bonus: 0 }
   ];
 
   // ---------- 競馬：マスタデータ ----------
@@ -756,9 +758,11 @@
       el.ticketPlace3.style.pointerEvents = (BET_TYPES.find(function (x) { return x.id === ticketSelection.betType; }).cols >= 3) ? 'auto' : 'none';
     }
     var yenPerPoint = 100;
+    var yenMax = hasItem('keiba_omamori') ? 10000000 : 10000;
     if (el.ticketYenInput) {
+      if (el.ticketYenInput.max !== String(yenMax)) el.ticketYenInput.max = yenMax;
       var v = parseInt(el.ticketYenInput.value, 10);
-      if (!isNaN(v) && v >= 100 && v <= 10000) yenPerPoint = v;
+      if (!isNaN(v) && v >= 100 && v <= yenMax) yenPerPoint = v;
     }
     if (el.ticketYenPerPointDisplay) el.ticketYenPerPointDisplay.textContent = yenPerPoint;
     var pts = countTicketPoints();
@@ -822,9 +826,10 @@
     var pts = countTicketPoints();
     if (pts <= 0) return;
     var yenPerPoint = 100;
+    var yenMax = hasItem('keiba_omamori') ? 10000000 : 10000;
     if (el.ticketYenInput) {
       var v = parseInt(el.ticketYenInput.value, 10);
-      if (!isNaN(v) && v >= 100 && v <= 10000) yenPerPoint = v;
+      if (!isNaN(v) && v >= 100 && v <= yenMax) yenPerPoint = v;
     }
     var yen = pts * yenPerPoint;
     if (state.money < yen) {
@@ -924,11 +929,10 @@
     var fenceH = 32; // top:10px + fence:18px + border:2px + pad:2px
     var laneH = (trackH - fenceH - 12) / 8;
 
-    // --- ゴール板（最初は非表示、最後の直線で流れてくる） ---
+    // --- ゴール板（最初は画面外、最後の直線で流れてくる） ---
     var goalStopX = Math.round(trackW * 0.30);
     if (goalEl) {
       goalEl.style.left = '-60px';
-      goalEl.style.display = 'none';
     }
 
     // 古い馬要素クリア
@@ -991,12 +995,15 @@
       horses.push({
         idx: i, el: div, frame: e.frame, strategy: strategy,
         normalized: normalized, rank: rank,
-        startPos: 0.46 + Math.random() * 0.04,
+        startPos: 0.08 + Math.random() * 0.04,
         midPos: midPos,
         endPos: endPos,
-        pos: 0.46
+        pos: 0.08
       });
     }
+
+    // 初期位置を描画（シーンカット中も正しい位置に）
+    renderHorses();
 
     // --- シーン定義 ---
     var SCENES = [
@@ -1161,15 +1168,13 @@
       renderHorses();
       renderBoard();
 
-      // --- ゴール板のスクロール表示（最後の直線の終盤に流れてくる） ---
+      // --- ゴール板のスクロール表示（最後の直線の終盤に左から流れてくる） ---
       if (sceneIdx === 2 && goalEl) {
-        // 最後の直線の残り20%（≒2秒）でゴール板が左から流れてくる
-        if (progress > 0.80) {
-          var gp = (progress - 0.80) / 0.20;
-          goalEl.style.display = '';
+        // 残り25%（≒2.5秒）でゴール板が左端外から goalStopX まで流れてくる
+        var GOAL_APPEAR = 0.75;
+        if (progress > GOAL_APPEAR) {
+          var gp = (progress - GOAL_APPEAR) / (1 - GOAL_APPEAR);
           goalEl.style.left = (-40 + (goalStopX + 40) * gp) + 'px';
-        } else {
-          goalEl.style.display = 'none';
         }
       }
 
@@ -1181,7 +1186,6 @@
         } else {
           // レース終了 → ゴール板を確定位置に固定 → 通過フェーズへ
           if (goalEl) {
-            goalEl.style.display = '';
             goalEl.style.left = goalStopX + 'px';
           }
           horses.forEach(function (h) { h.pos = h.endPos; });
@@ -1748,7 +1752,12 @@
       row.appendChild(priceSpan);
       var bonusSpan = document.createElement('span');
       bonusSpan.className = 'shop-item-bonus';
-      bonusSpan.textContent = '+' + item.bonus + '倍';
+      if (item.id === 'keiba_omamori') {
+        bonusSpan.textContent = '掛金上限解除';
+        bonusSpan.style.color = '#e74c3c';
+      } else {
+        bonusSpan.textContent = '+' + item.bonus + '倍';
+      }
       row.appendChild(bonusSpan);
       if (owned) {
         var ownedSpan = document.createElement('span');
@@ -1858,7 +1867,7 @@
         row.appendChild(preview);
         var info = document.createElement('div');
         info.className = 'inv-info';
-        info.textContent = it.name + ' … +' + it.bonus + '倍';
+        info.textContent = it.name + ' … ' + (it.id === 'keiba_omamori' ? '掛金上限解除' : '+' + it.bonus + '倍');
         row.appendChild(info);
         var actions = document.createElement('div');
         actions.className = 'inv-actions';

@@ -1014,7 +1014,6 @@ body {
   height: 100%;
   z-index: 9;
   pointer-events: none;
-  display: none;
 }
 /* メインの縦柱（赤白ストライプ） */
 .goal-post {

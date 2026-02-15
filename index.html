@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ラッキー・ロト・ライフ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <!-- 上部：ステータス -->
+    <header class="status-bar">
+      <div class="status-item" id="date-display">2026年目 1月 1週</div>
+      <div class="status-item" id="money-display">¥ 1,000,000</div>
+      <div class="status-item" id="luck-display">運気 小吉</div>
+    </header>
+
+    <!-- メイン画面（家） -->
+    <div id="main-screen">
+    <!-- 中央：メインウィンドウ（家の中 + 主人公） -->
+    <main class="main-window">
+      <div class="message-frame">
+        <div class="room" id="room" aria-hidden="true">
+          <div class="room-wall"></div>
+          <div class="room-floor"></div>
+          <div class="room-window" aria-hidden="true"></div>
+          <div class="room-slots" id="room-slots"></div>
+          <div class="hero" id="hero">
+            <div class="hero-sprite" id="hero-sprite">
+              <!-- 8x12 ドット絵（0=透明 1=髪 2=顔 3=服 4=足） -->
+              <span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span>
+              <span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span><span class="p p-h"></span>
+              <span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span>
+              <span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span><span class="p p-s"></span>
+              <span class="p p-h"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-h"></span>
+              <span class="p p-h"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-h"></span>
+              <span class="p p-h"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-t"></span><span class="p p-h"></span>
+              <span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span>
+              <span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span>
+              <span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span>
+              <span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span>
+              <span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span><span class="p p-l"></span>
+            </div>
+          </div>
+        </div>
+        <p class="situation-message" id="situation-message">運気を高めて、宝くじに挑戦しよう！</p>
+      </div>
+    </main>
+
+    <!-- 下部：操作ボタン -->
+    <footer class="action-bar action-bar-main">
+      <button type="button" class="btn btn-training" id="btn-training">運気トレーニング</button>
+      <button type="button" class="btn btn-lottery" id="btn-lottery">宝くじを買う</button>
+    </footer>
+    <footer class="action-bar action-bar-sub">
+      <button type="button" class="btn btn-shop" id="btn-shop">買い物</button>
+      <button type="button" class="btn btn-inventory" id="btn-inventory">所持アイテム</button>
+      <button type="button" class="btn btn-race" id="btn-go-race">競馬場へ行く</button>
+    </footer>
+    </div>
+
+    <!-- 競馬予想画面 -->
+    <div id="race-screen" class="hidden">
+      <main class="main-window race-window">
+        <div class="race-frame">
+          <h2 class="race-title" id="race-header">競馬場 芝 1600m</h2>
+          <div class="race-table-wrap" id="race-table-wrap">
+            <table class="race-table" id="race-table"></table>
+          </div>
+          <div class="race-purchased-wrap" id="race-purchased-wrap">
+            <h3 class="race-purchased-title">購入済み馬券 <span id="race-purchased-summary"></span></h3>
+            <div class="race-purchased-list" id="race-purchased-list"></div>
+          </div>
+          <div class="race-actions">
+            <button type="button" class="btn btn-ticket" id="btn-buy-tickets">馬券を購入</button>
+            <button type="button" class="btn btn-start" id="btn-start-race">レース開始</button>
+            <button type="button" class="btn btn-back" id="btn-back-from-race">戻る</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 馬券購入モーダル -->
+  <div class="modal-overlay" id="ticket-modal" aria-hidden="true">
+    <div class="modal-content modal-ticket">
+      <h2 class="modal-title">馬券購入</h2>
+      <div class="ticket-tabs" id="ticket-tabs"></div>
+      <div class="ticket-formation">
+        <div class="ticket-place-col" id="ticket-place1"></div>
+        <div class="ticket-place-col" id="ticket-place2"></div>
+        <div class="ticket-place-col" id="ticket-place3"></div>
+      </div>
+      <div class="ticket-yen-per-point">
+        <label for="ticket-yen-input">1点あたり</label>
+        <input type="number" id="ticket-yen-input" min="100" max="10000" step="100" value="100"> 円
+      </div>
+      <p class="ticket-summary"><span id="ticket-points">0 点</span> × <span id="ticket-yen-per-point-display">100</span>円 = <span id="ticket-total-yen">¥ 0</span></p>
+      <button type="button" class="btn btn-primary" id="btn-ticket-confirm">購入する</button>
+      <button type="button" class="btn btn-back" id="btn-ticket-modal-back">戻る</button>
+    </div>
+  </div>
+
+  <!-- 競馬結果モーダル -->
+  <div class="modal-overlay" id="race-result-modal" aria-hidden="true">
+    <div class="modal-content modal-result-race">
+      <h2 class="modal-title">レース結果</h2>
+      <div class="race-result-table-wrap">
+        <table class="race-result-table" id="race-result-table">
+          <thead><tr><th>着順</th><th>枠番</th><th>馬番</th><th>馬名</th><th>タイム</th><th>オッズ</th></tr></thead>
+          <tbody id="race-result-tbody"></tbody>
+        </table>
+      </div>
+      <h3 class="payout-title">払戻金</h3>
+      <div class="payout-table-wrap">
+        <table class="payout-table" id="payout-table">
+          <tbody id="payout-tbody"></tbody>
+        </table>
+      </div>
+      <h3 class="payout-title">あなたの馬券</h3>
+      <div class="user-tickets-wrap" id="user-tickets-wrap">
+        <div id="user-tickets-list"></div>
+      </div>
+      <p class="race-result-total-payout" id="race-result-total-payout"></p>
+      <button type="button" class="btn btn-back" id="btn-race-result-close">OK（1週間進む）</button>
+    </div>
+  </div>
+
+  <!-- レースアニメーション -->
+  <div class="race-anim-overlay" id="race-anim-overlay" aria-hidden="true">
+    <div class="race-anim-content">
+      <div class="race-anim-info">
+        <span class="race-anim-header" id="race-anim-header"></span>
+        <span class="race-anim-phase" id="race-anim-phase"></span>
+      </div>
+      <div class="race-anim-viewport" id="race-anim-viewport">
+        <div class="race-anim-fence"><div class="race-anim-fence-inner" id="race-anim-fence-inner"></div></div>
+        <div class="race-anim-goal" id="race-anim-goal">
+          <div class="goal-post"></div>
+          <div class="goal-banner">G</div>
+        </div>
+        <div class="race-anim-weather" id="race-anim-weather"></div>
+        <div class="race-anim-scene-cut" id="race-anim-scene-cut"><span id="race-anim-scene-text"></span></div>
+      </div>
+      <div class="race-anim-board" id="race-anim-board"></div>
+      <div class="race-anim-tickets" id="race-anim-tickets"></div>
+    </div>
+  </div>
+
+  <!-- 枚数選択モーダル -->
+  <div class="modal-overlay" id="lottery-modal" aria-hidden="true">
+    <div class="modal-content modal-lottery">
+      <h2 class="modal-title">枚数を選んでね</h2>
+      <div class="ticket-options">
+        <button type="button" class="ticket-btn" data-count="1" data-price="300">1枚 (300円)</button>
+        <button type="button" class="ticket-btn" data-count="10" data-price="3000">10枚 (3,000円)</button>
+        <button type="button" class="ticket-btn" data-count="100" data-price="30000">100枚 (30,000円)</button>
+        <button type="button" class="ticket-btn" data-count="1000" data-price="300000">1000枚 (300,000円)</button>
+      </div>
+      <button type="button" class="btn btn-back" id="btn-lottery-back">戻る</button>
+    </div>
+  </div>
+
+  <!-- 抽選中オーバーレイ -->
+  <div class="drawing-overlay" id="drawing-overlay" aria-hidden="true">
+    <div class="drawing-content">
+      <p class="drawing-text" id="drawing-text">抽選中…</p>
+      <div class="drawing-dots" id="drawing-dots">
+        <span class="dot">・</span><span class="dot">・</span><span class="dot">・</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 買い物モーダル -->
+  <div class="modal-overlay" id="shop-modal" aria-hidden="true">
+    <div class="modal-content modal-shop">
+      <h2 class="modal-title">買い物</h2>
+      <div class="shop-list" id="shop-list"></div>
+      <button type="button" class="btn btn-back" id="btn-shop-back">戻る</button>
+    </div>
+  </div>
+
+  <!-- 所持アイテムモーダル -->
+  <div class="modal-overlay" id="inventory-modal" aria-hidden="true">
+    <div class="modal-content modal-inventory">
+      <h2 class="modal-title">所持アイテム</h2>
+      <div class="inventory-list" id="inventory-list"></div>
+      <p class="inventory-total" id="inventory-total">合計上昇倍率: +0倍</p>
+      <button type="button" class="btn btn-back" id="btn-inventory-back">戻る</button>
+    </div>
+  </div>
+
+  <!-- 家具配置モーダル -->
+  <div class="modal-overlay place-modal" id="place-modal" aria-hidden="true">
+    <div class="modal-content modal-place">
+      <h2 class="modal-title" id="place-modal-title">どこに置く？</h2>
+      <div class="place-slots-grid" id="place-slots-container"></div>
+      <button type="button" class="btn btn-back" id="btn-place-back">戻る</button>
+    </div>
+  </div>
+
+  <!-- 当選結果モーダル -->
+  <div class="modal-overlay" id="result-modal" aria-hidden="true">
+    <div class="modal-content modal-result">
+      <h2 class="modal-title" id="result-title">抽選結果</h2>
+      <div class="result-summary" id="result-summary"></div>
+      <div class="result-details" id="result-details"></div>
+      <button type="button" class="btn btn-close-result" id="btn-close-result">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
